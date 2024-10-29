@@ -1,0 +1,63 @@
+# src/analysis/power_generation.py
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+import hdbscan
+from tslearn.metrics import cdist_dtw, dtw
+
+def analyze_power_generation(time_series_path, plant_features_path, price_data_path):
+    """
+    Analyze power generation patterns using clustering and time series analysis.
+    
+    Args:
+        time_series_path (str): Path to generation time series CSV file
+        plant_features_path (str): Path to plant features CSV file
+        price_data_path (str): Path to price data CSV file
+        
+    Returns:
+        pd.DataFrame: Analysis results including cluster assignments
+    """
+    # Load data
+    time_series_data = pd.read_csv(time_series_path, parse_dates=['time'], index_col='time')
+    plant_features = pd.read_csv(plant_features_path)
+    price_data = pd.read_csv(price_data_path, parse_dates=['time'], index_col='time')
+
+    # Calculate generation patterns
+    time_series_long = time_series_data.reset_index().melt(
+        id_vars=['time'], 
+        var_name='streamName', 
+        value_name='power_generated'
+    )
+    merged_data = time_series_long.merge(plant_features, on='streamName')
+    merged_data["generation_pu"] = merged_data['power_generated'] / merged_data['capacity']
+
+    # Calculate statistics
+    generation_stats = merged_data.groupby('streamName')["generation_pu"].agg(
+        ['mean', 'std']
+    ).reset_index()
+    
+    # Rest of the analysis code...
+    # [Previous analysis code continued here...]
+    
+    return df_final
+
+# src/visualization/maps.py
+[Previous visualization code moved here...]
+
+# src/visualization/plots.py
+[Previous plotting code moved here...]
+
+# src/utils/helpers.py
+def coefficient_of_variation(x):
+    """Calculate coefficient of variation."""
+    return np.std(x) / np.mean(x)
+
+def create_size_legend(capacity_series):
+    """Create size legend for plots."""
+    sizes = [capacity_series.max() * x for x in [0.25, 0.5, 1.0]]
+    handles = [plt.scatter([], [], s=size/50, c='gray', alpha=0.7) 
+              for size in sizes]
+    labels = [f'{int(size)} MW' for size in sizes]
+    return handles, labels
